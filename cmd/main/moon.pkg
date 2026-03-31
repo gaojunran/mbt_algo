@@ -1,0 +1,7 @@
+// import {
+//   "gaojunran/mbt_algo" @lib,
+// }
+
+options(
+  "is-main": true,
+)
