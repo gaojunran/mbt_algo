@@ -1,5 +1,5 @@
 struct Node {
-  val: Int
+  mut val: Int
   mut left: Node?
   mut right: Node?
 } derive(ToJson)
@@ -93,19 +93,44 @@ fn BST::postorder(self : Self) -> Array[Int] {
   postorder_node(self.root, [])
 }
 
-///|
-// fn BST::delete(self : Self, val : Int) -> Unit {
-//   fn delete_node(root : Node?, val : Int) -> Node? {
-//     guard root is Some(node) else { return None }
-//     if node.left is None && node.right is None {
-//       return None
-//     }
-//     if 
-//     None
-//   }
-//   self.root = delete_node(self.root, val)
-// }
+fn find_min(node : Node) -> Node {
+  match node.left {
+    None => node
+    Some(left) => find_min(left)
+  }
+}
 
+///|
+fn BST::delete(self : Self, val : Int) -> Unit {
+  fn delete_node(root : Node?, val : Int) -> Node? {
+    match root {
+      None => None
+      Some(node) =>
+        if val < node.val {
+          node.left = delete_node(node.left, val)
+          root
+        } else if val > node.val {
+          node.right = delete_node(node.right, val)
+          root
+        } else { // equal
+          match (node.left, node.right) {
+            (None, None) => None
+            (Some(left), None) => Some(left)
+            (None, Some(right)) => Some(right)
+            (Some(_), Some(right)) => {
+              let min = find_min(right)
+              // 用中序后继替换当前节点
+              node.val = min.val
+              // 把这个替换的节点删掉
+              node.right = delete_node(node.right, min.val)
+              root
+            }
+          }
+        }
+    }
+  }
+  self.root = delete_node(self.root, val)
+}
 
 
 ///|
@@ -126,4 +151,10 @@ test "insert" {
   json_inspect(bst.inorder(), content=[1, 2, 3, 4])
   json_inspect(bst.preorder(), content=[3, 1, 2, 4])
   json_inspect(bst.postorder(), content=[2, 1, 4, 3])
+
+  bst.delete(3)
+  json_inspect(bst, content={
+    "root": { "val": 4, "left": { "val": 1, "right": { "val": 2 } } },
+  })
+  json_inspect(bst.inorder(), content=[1, 2, 4])
 }

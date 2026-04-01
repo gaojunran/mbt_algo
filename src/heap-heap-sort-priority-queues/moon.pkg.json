@@ -1,0 +1,6 @@
+{
+  "name": "heap_heap_sort_priority_queues",
+  "import": [
+    "moonbitlang/core/int"
+  ]
+}
