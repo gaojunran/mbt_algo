@@ -1,6 +1,7 @@
 {
   "name": "red_black_tree",
   "import": [
-    "moonbitlang/core/int"
+    "moonbitlang/core/int",
+    "gaojunran/mbt_algo/src/binary_search_tree"
   ]
 }

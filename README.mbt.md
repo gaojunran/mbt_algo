@@ -10,6 +10,12 @@
 输出到 `src/binary_search_tree/GUIDE.md` 中。
 ```
 
+有些文件夹中有 `guides/`，是用 html 格式画的动画，方便我来学习算法的动态过程。提示词示例：
+
+```
+帮我做个 html 以动画的形式形象演示这几步。（引用 `GUIDE.md` 中不理解的部分）放到 src/red_black_tree/guides 这里。
+```
+
 ## 目录（暂定）
 
 - `binary_search_tree`
@@ -20,3 +26,7 @@
 - `spanning_tree`
 - `single_source_shortest_paths`
 - `kmp_algo`
+
+## 有用的资源
+
+1. [HyperSnips](https://marketplace.visualstudio.com/items?itemName=draivin.hsnips) - VSCode 插件，用于快速替换代码片段。对于手写代码时的重复结构很有帮助。

@@ -1,0 +1,7 @@
+snippet `([a-zA-Z_][\w.]*)\.some` "Wrap with Some()" A
+Some(``rv = m[1]``)
+endsnippet
+
+snippet lmd "Lambda x => x" w
+${1:x} => $1
+endsnippet
