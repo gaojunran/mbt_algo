@@ -1,0 +1,6 @@
+{
+  "name": "huffman_trees",
+  "import": [
+    "moonbitlang/core/int"
+  ]
+}
