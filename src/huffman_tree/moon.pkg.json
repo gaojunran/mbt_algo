@@ -1,0 +1,7 @@
+{
+  "name": "huffman_trees",
+  "import": [
+    "moonbitlang/core/int",
+    "moonbitlang/core/priority_queue"
+  ]
+}

@@ -20,10 +20,6 @@ struct HuffmanTree {
   root: Node?
 }
 
-fn HuffmanTree::new() -> Self {
-  { root: None }
-}
-
 fn get_freq_map(text: String) -> FreqMap {
   let freq_map = {}
   text.iter().each(ch => {
@@ -79,14 +75,11 @@ fn HuffmanTree::decode(self: Self, encoded: String) -> String {
     let next = match (curr, bit) {
       (Some({ left: Some(left), .. }), '0') => left
       (Some({ right: Some(right), .. }), '1') => right
-
-      (None, _)
-      | (Some({ left: None, .. }), '0')
-      | (Some({ right: None, .. }), '1')
-      | (_, _) => break result
+      _ => break result  // 异常分支
     }
 
     match next.ch {
+      // 叶子节点，输出字符并回到根节点
       Some(ch) => continue self.root, result + ch.to_string()
       None => continue Some(next), result
     }

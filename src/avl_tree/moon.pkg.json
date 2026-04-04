@@ -1,5 +1,5 @@
 {
-  "name": "huffman_trees",
+  "name": "red_black_tree",
   "import": [
     "moonbitlang/core/int"
   ]
