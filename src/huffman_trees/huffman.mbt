@@ -76,17 +76,21 @@ fn HuffmanTree::encode(self: Self, text: String) -> String {
 
 fn HuffmanTree::decode(self: Self, encoded: String) -> String {
   for bit in encoded; curr = self.root, result = "" {
-    guard curr is Some(node) else { break result }
-    let next = if bit == '0' { node.left } else { node.right }
-    guard next is Some(node) else { break result }
-    match node.ch {
-      None => continue Some(node), result
-      // 叶子节点，输出字符并回到根节点
-      Some(ch) => continue self.root, result + ch.to_string()
+    let next = match (curr, bit) {
+      (Some({ left: Some(left), .. }), '0') => left
+      (Some({ right: Some(right), .. }), '1') => right
+
+      (None, _)
+      | (Some({ left: None, .. }), '0')
+      | (Some({ right: None, .. }), '1')
+      | (_, _) => break result
     }
-  } nobreak {
-    result
-  }
+
+    match next.ch {
+      Some(ch) => continue self.root, result + ch.to_string()
+      None => continue Some(next), result
+    }
+  } nobreak { result }
 }
 
 ///|
