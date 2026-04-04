@@ -50,6 +50,7 @@ fn ArrayHeap::peek(self : ArrayHeap) -> Int? {
 ///|
 /// 保证这个节点比其父节点小
 fn ArrayHeap::sift_up(self : ArrayHeap, i : Int) -> Unit {
+  guard self.arr.get(i) is Some(_) else { return }
   for i = i {
     let parent = self.parent(i)
     guard parent.1 is Some(parent_val) && self.arr[i] > parent_val 
@@ -73,6 +74,7 @@ fn ArrayHeap::pop(self : ArrayHeap) -> Int? {
 ///|
 /// 保证这个节点比其子节点大
 fn ArrayHeap::sift_down(self : ArrayHeap, i : Int) -> Unit {
+  guard self.arr.get(i) is Some(_) else { return }
   for i = i {
     let l = self.left(i)
     let r = self.right(i)
@@ -119,6 +121,9 @@ test {
   let popped = heap.pop()
   assert_eq(popped, Some(3))
   json_inspect(heap, content=({"arr":[2,1]}))
+  let arr = [5, 3, 8, 1, 2]
+  let sorted = heap_sort(arr)
+  assert_eq(sorted, [8, 5, 3, 2, 1])
 }
 
 
