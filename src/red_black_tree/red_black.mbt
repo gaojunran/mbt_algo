@@ -302,10 +302,13 @@ fn RedBlackTree::fix_delete(
     let x_is_left = x.map_or(p.left is None, Node::is_left_child)
 
     if x_is_left {
+      let w0 = match p.right {
+        Some(w) => w
+        None => continue Some(p), p.parent
+      }
       // Case 1：x 的兄弟 w 是红色 → 交换颜色 + 左旋父节点
-      if color(p.right) is Red {
-        let w = p.right.unwrap()
-        w.color = Black
+      if w0.color is Red {
+        w0.color = Black
         p.color = Red
         self.left_rotate(p)
       }
@@ -339,10 +342,13 @@ fn RedBlackTree::fix_delete(
       self.left_rotate(p)
       continue self.root, None
     } else {
+      let w0 = match p.left {
+        Some(w) => w
+        None => continue Some(p), p.parent
+      }
       // 镜像：x 是右孩子
-      if color(p.left) is Red {
-        let w = p.left.unwrap()
-        w.color = Black
+      if w0.color is Red {
+        w0.color = Black
         p.color = Red
         self.right_rotate(p)
       }
