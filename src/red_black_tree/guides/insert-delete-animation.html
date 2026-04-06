@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red-Black Tree Insert/Delete Animation</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg2: #111827;
+    --surface: #1f2937;
+    --surface-soft: #243244;
+    --accent: #f97316;
+    --accent2: #22c55e;
+    --text: #e5e7eb;
+    --text-dim: #94a3b8;
+    --edge: #475569;
+    --gold: #facc15;
+    --danger: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.12), transparent 35%),
+      radial-gradient(circle at 80% 10%, rgba(34, 197, 94, 0.1), transparent 35%),
+      linear-gradient(160deg, var(--bg), var(--bg2));
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    padding: 26px 12px 8px;
+    font-size: 1.55rem;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #fb923c, #facc15, #4ade80);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    padding: 0 12px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0 18px;
+    padding: 0 14px;
+  }
+
+  .case-overview {
+    max-width: 980px;
+    margin: 0 auto 14px;
+    padding: 0 18px;
+  }
+
+  .case-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .case-box {
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.9), rgba(23, 34, 49, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .case-box-title {
+    color: #fcd34d;
+    font-size: 0.84rem;
+    margin-bottom: 6px;
+  }
+
+  .case-box ul {
+    margin-left: 16px;
+    color: #cbd5e1;
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .tab-btn {
+    padding: 10px 24px;
+    border: 2px solid #fb923c;
+    background: transparent;
+    color: #fdba74;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .tab-btn.active,
+  .tab-btn:hover {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
+  }
+
+  .scenario-select {
+    min-width: 280px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 18px 40px;
+  }
+
+  .canvas-wrap {
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.95), rgba(36, 50, 68, 0.92));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 440px;
+  }
+
+  .info {
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.92), rgba(23, 34, 49, 0.92));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 18px 20px;
+    min-height: 128px;
+  }
+
+  .step-title {
+    color: var(--gold);
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .step-desc {
+    color: var(--text-dim);
+    line-height: 1.65;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .code-line {
+    color: #86efac;
+    background: rgba(255, 255, 255, 0.06);
+    display: inline-block;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.84rem;
+  }
+
+  .reason-title,
+  .vars-title {
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-size: 0.83rem;
+    color: #cbd5e1;
+  }
+
+  .step-why {
+    color: #cbd5e1;
+    line-height: 1.65;
+    font-size: 0.88rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .vars-map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .var-chip {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #bae6fd;
+    font-size: 0.8rem;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 12px;
+  }
+
+  .ctrl-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.22s;
+  }
+
+  .ctrl-btn.primary {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+  }
+
+  .ctrl-btn.secondary {
+    background: #334155;
+    color: #cbd5e1;
+  }
+
+  .ctrl-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
+
+  .ctrl-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #334155;
+    transition: all 0.25s;
+  }
+
+  .dot.done { background: #22c55e; }
+  .dot.active {
+    background: var(--gold);
+    transform: scale(1.35);
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  @media (max-width: 760px) {
+    canvas { height: 360px; }
+    .tab-btn { padding: 9px 18px; }
+    .scenario-select { width: 100%; }
+    .toolbar { flex-direction: column; }
+    .case-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Red-Black Tree Insert / Delete 动画</h1>
+<div class="subtitle">依据 red_black.mbt 中的 insert / fix_insert / delete / fix_delete 逻辑拆步演示</div>
+
+<div class="toolbar">
+  <button class="tab-btn active" data-mode="insert" onclick="switchMode('insert')">Insert</button>
+  <button class="tab-btn" data-mode="delete" onclick="switchMode('delete')">Delete</button>
+  <select id="scenarioSelect" class="scenario-select" onchange="switchScenario(this.value)"></select>
+</div>
+
+<div class="case-overview">
+  <div class="case-grid">
+    <div class="case-box">
+      <div class="case-box-title">Insert 全部分支（源码对应）</div>
+      <ul id="insertCaseList"></ul>
+    </div>
+    <div class="case-box">
+      <div class="case-box-title">Delete 全部分支（源码对应）</div>
+      <ul id="deleteCaseList"></ul>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="canvas-wrap">
+    <canvas id="treeCanvas"></canvas>
+  </div>
+
+  <div class="info">
+    <div class="step-title" id="stepTitle"></div>
+    <div class="step-desc" id="stepDesc"></div>
+    <div class="code-line" id="codeLine"></div>
+    <div class="reason-title">这一步为什么这样做</div>
+    <div class="step-why" id="stepWhy"></div>
+    <div class="vars-title">变量对应（本步）</div>
+    <div class="vars-map" id="varsMap"></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn secondary" id="btnReset" onclick="resetAnim()">Reset</button>
+    <button class="ctrl-btn secondary" id="btnPrev" onclick="prevStep()">Prev</button>
+    <div class="dots" id="dots"></div>
+    <button class="ctrl-btn primary" id="btnNext" onclick="nextStep()">Next</button>
+    <button class="ctrl-btn secondary" id="btnAuto" onclick="autoPlay()">Auto</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:#ef4444"></span>Red node (R)</span>
+    <span><span class="swatch" style="background:#111827;border:1px solid #cbd5e1"></span>Black node (B)</span>
+    <span><span class="swatch" style="background:#facc15"></span>Current focus</span>
+    <span><span class="swatch" style="background:#22c55e"></span>New / updated edge</span>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('treeCanvas');
+const ctx = canvas.getContext('2d');
+const DPR = window.devicePixelRatio || 1;
+const NODE_R = 22;
+
+let mode = 'insert';
+let scenarioId = '';
+let currentStep = 0;
+let prevStepSnapshot = null;
+let targetStepSnapshot = null;
+let animProgress = 1;
+let animating = false;
+let rafId = null;
+let autoTimer = null;
+
+const SCENES = {
+  insert: [
+    {
+      id: 'ins_case1',
+      name: 'Insert Case 1: 叔叔红（重着色上推）',
+      steps: [
+        {
+          title: 'Step 0 - BST 插入前状态',
+          desc: '父节点 p=5 与叔叔 u=15 都是红色的典型场景，准备插入 z=1。',
+          code: 'while color(z.parent) is Red { ... }',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.33, 0.40, 'R', '5'),
+            n15: N(0.67, 0.40, 'R', '15'),
+            n1: N(0.20, 0.65, 'R', '1', 0)
+          },
+          edges: [E('n10','n5'), E('n10','n15')],
+          hiNodes: ['n5','n15']
+        },
+        {
+          title: 'Step 1 - BST 插入 z=1（红）',
+          desc: 'insert 先按 BST 落位，z 作为 p 的左孩子插入。',
+          code: 'z.parent = parent; p.left = Some(z)',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.33, 0.40, 'R', '5'),
+            n15: N(0.67, 0.40, 'R', '15'),
+            n1: N(0.20, 0.65, 'R', '1', 1)
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n1','new')],
+          hiNodes: ['n1','n5']
+        },
+        {
+          title: 'Step 2 - Case 1: color(u) is Red',
+          desc: 'fix_insert 命中叔叔红分支：p/u 变黑，g 变红，z 上移到 g。',
+          code: 'p.color = Black; u.color = Black; g.color = Red; z = g',
+          nodes: {
+            n10: N(0.50, 0.17, 'R', '10'),
+            n5: N(0.33, 0.40, 'B', '5'),
+            n15: N(0.67, 0.40, 'B', '15'),
+            n1: N(0.20, 0.65, 'R', '1')
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n1')],
+          hiNodes: ['n10','n5','n15']
+        },
+        {
+          title: 'Step 3 - 根节点强制变黑',
+          desc: '循环结束后统一执行 root 置黑，保证红黑树性质 2。',
+          code: 'self.root.unwrap().color = Black',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.33, 0.40, 'B', '5'),
+            n15: N(0.67, 0.40, 'B', '15'),
+            n1: N(0.20, 0.65, 'R', '1')
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n1')],
+          hiNodes: ['n10']
+        }
+      ]
+    },
+    {
+      id: 'ins_case23',
+      name: 'Insert Case 2+3: 内拐先旋再外拐',
+      steps: [
+        {
+          title: 'Step 0 - BST 插入后（内拐）',
+          desc: 'z=8 是 p=5 的右孩子，p 在 g=10 左侧，且叔叔 u=15 为黑。',
+          code: 'if is_left_child(p) && !is_left_child(z) { ... }',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.34, 0.40, 'R', '5'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n8: N(0.44, 0.66, 'R', '8')
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n8')],
+          hiNodes: ['n8','n5','n10']
+        },
+        {
+          title: 'Step 1 - Case 2: z = p; left_rotate(z)',
+          desc: '先把内拐结构旋成外拐，便于下一步 Case 3 处理。',
+          code: 'z = p; self.left_rotate(z)',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n8: N(0.34, 0.40, 'R', '8'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n5: N(0.24, 0.66, 'R', '5')
+          },
+          edges: [E('n10','n8','new'), E('n10','n15'), E('n8','n5','new')],
+          hiNodes: ['n8','n5']
+        },
+        {
+          title: 'Step 2 - Case 3: 重新着色',
+          desc: 'p=8 置黑，g=10 置红，准备对 g 做右旋。',
+          code: 'p.color = Black; g.color = Red',
+          nodes: {
+            n10: N(0.50, 0.17, 'R', '10'),
+            n8: N(0.34, 0.40, 'B', '8'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n5: N(0.24, 0.66, 'R', '5')
+          },
+          edges: [E('n10','n8'), E('n10','n15'), E('n8','n5')],
+          hiNodes: ['n10','n8']
+        },
+        {
+          title: 'Step 3 - Case 3: right_rotate(g)',
+          desc: '外拐场景执行右旋，8 上升为局部根。',
+          code: 'self.right_rotate(g)',
+          nodes: {
+            n8: N(0.50, 0.17, 'B', '8'),
+            n5: N(0.33, 0.40, 'R', '5'),
+            n10: N(0.67, 0.40, 'R', '10'),
+            n15: N(0.79, 0.66, 'B', '15')
+          },
+          edges: [E('n8','n5','new'), E('n8','n10','new'), E('n10','n15')],
+          hiNodes: ['n8','n10']
+        },
+        {
+          title: 'Step 4 - 根节点保持黑色',
+          desc: '最终再次确保 root 为黑色，插入修复完成。',
+          code: 'self.root.unwrap().color = Black',
+          nodes: {
+            n8: N(0.50, 0.17, 'B', '8'),
+            n5: N(0.33, 0.40, 'R', '5'),
+            n10: N(0.67, 0.40, 'R', '10'),
+            n15: N(0.79, 0.66, 'B', '15')
+          },
+          edges: [E('n8','n5'), E('n8','n10'), E('n10','n15')],
+          hiNodes: ['n8']
+        }
+      ]
+    },
+    {
+      id: 'ins_mirror_case23',
+      name: 'Insert 镜像 Case 2+3: 右侧内拐',
+      steps: [
+        {
+          title: 'Step 0 - 镜像内拐（父在祖父右侧）',
+          desc: 'z=12 是 p=15 的左孩子，p 在 g=10 右侧，叔叔 u=5 为黑。',
+          code: 'else { if is_left_child(z) { z = p; self.right_rotate(z) } ... }',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.32, 0.40, 'B', '5'),
+            n15: N(0.68, 0.40, 'R', '15'),
+            n12: N(0.58, 0.66, 'R', '12')
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n15','n12')],
+          hiNodes: ['n12','n15','n10']
+        },
+        {
+          title: 'Step 1 - 镜像 Case 2: z=p, right_rotate(p)',
+          desc: '内拐先对父节点右旋，转成外拐结构。',
+          code: 'z = p; self.right_rotate(z)',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.32, 0.40, 'B', '5'),
+            n12: N(0.68, 0.40, 'R', '12'),
+            n15: N(0.78, 0.66, 'R', '15')
+          },
+          edges: [E('n10','n5'), E('n10','n12','new'), E('n12','n15','new')],
+          hiNodes: ['n12','n15']
+        },
+        {
+          title: 'Step 2 - 镜像 Case 3: 重新着色',
+          desc: 'p=12 置黑，g=10 置红，准备左旋 g。',
+          code: 'p.color = Black; g.color = Red',
+          nodes: {
+            n10: N(0.50, 0.17, 'R', '10'),
+            n5: N(0.32, 0.40, 'B', '5'),
+            n12: N(0.68, 0.40, 'B', '12'),
+            n15: N(0.78, 0.66, 'R', '15')
+          },
+          edges: [E('n10','n5'), E('n10','n12'), E('n12','n15')],
+          hiNodes: ['n10','n12']
+        },
+        {
+          title: 'Step 3 - 镜像 Case 3: left_rotate(g)',
+          desc: '对祖父做左旋，12 成为局部根。',
+          code: 'self.left_rotate(g)',
+          nodes: {
+            n12: N(0.50, 0.17, 'B', '12'),
+            n10: N(0.33, 0.40, 'R', '10'),
+            n15: N(0.67, 0.40, 'R', '15'),
+            n5: N(0.22, 0.66, 'B', '5')
+          },
+          edges: [E('n12','n10','new'), E('n12','n15','new'), E('n10','n5')],
+          hiNodes: ['n12','n10']
+        },
+        {
+          title: 'Step 4 - 根节点保持黑色',
+          desc: '收尾步骤与左侧分支一致。',
+          code: 'self.root.unwrap().color = Black',
+          nodes: {
+            n12: N(0.50, 0.17, 'B', '12'),
+            n10: N(0.33, 0.40, 'R', '10'),
+            n15: N(0.67, 0.40, 'R', '15'),
+            n5: N(0.22, 0.66, 'B', '5')
+          },
+          edges: [E('n12','n10'), E('n12','n15'), E('n10','n5')],
+          hiNodes: ['n12']
+        }
+      ]
+    },
+    {
+      id: 'ins_no_fix',
+      name: 'Insert 快速路径: 父节点黑，无需修复',
+      steps: [
+        {
+          title: 'Step 0 - 插入前',
+          desc: 'p=5 是黑色，插入 z=7 后不会触发 while 修复。',
+          code: 'if color(z.parent) is Black { return }',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.34, 0.40, 'B', '5'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n7: N(0.46, 0.66, 'R', '7', 0)
+          },
+          edges: [E('n10','n5'), E('n10','n15')],
+          hiNodes: ['n5']
+        },
+        {
+          title: 'Step 1 - BST 插入 z=7',
+          desc: 'z 作为红色新节点挂到父节点下面。',
+          code: 'p.right = Some(z)',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.34, 0.40, 'B', '5'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n7: N(0.46, 0.66, 'R', '7', 1)
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n7','new')],
+          hiNodes: ['n7','n5']
+        },
+        {
+          title: 'Step 2 - 父黑直接返回',
+          desc: '命中快速路径，不进入 fix_insert。',
+          code: 'if color(z.parent) is Black { return }',
+          nodes: {
+            n10: N(0.50, 0.17, 'B', '10'),
+            n5: N(0.34, 0.40, 'B', '5'),
+            n15: N(0.68, 0.40, 'B', '15'),
+            n7: N(0.46, 0.66, 'R', '7')
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n5','n7')],
+          hiNodes: ['n5']
+        }
+      ]
+    }
+  ],
+
+  delete: [
+    {
+      id: 'del_case12',
+      name: 'Delete Case 1+2: 兄弟红 -> 双黑侄',
+      steps: [
+        {
+          title: 'Step 0 - 删除黑叶节点 z',
+          desc: 'delete 找到 z=5（黑），删除后 x=NIL，需进入 fix_delete。',
+          code: 'if y_original_color is Black { self.fix_delete(x, x_parent) }',
+          nodes: {
+            n10: N(0.45, 0.20, 'B', '10'),
+            n5: N(0.28, 0.44, 'B', '5'),
+            n15: N(0.62, 0.44, 'R', '15'),
+            n12: N(0.54, 0.68, 'B', '12'),
+            n18: N(0.72, 0.68, 'B', '18'),
+            nx: N(0.28, 0.44, 'B', 'x=NIL', 0)
+          },
+          edges: [E('n10','n5'), E('n10','n15'), E('n15','n12'), E('n15','n18')],
+          hiNodes: ['n5']
+        },
+        {
+          title: 'Step 1 - transplant 后 x 在左侧（NIL）',
+          desc: 'x 是 p=10 的左侧空位，兄弟 w=15 为红，命中 Case 1。',
+          code: 'if color(w) is Red { ... }',
+          nodes: {
+            n10: N(0.45, 0.20, 'B', '10'),
+            n15: N(0.62, 0.44, 'R', '15'),
+            n12: N(0.54, 0.68, 'B', '12'),
+            n18: N(0.72, 0.68, 'B', '18'),
+            nx: N(0.30, 0.44, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n10','n15'), E('n15','n12'), E('n15','n18')],
+          hiNodes: ['nx','n15']
+        },
+        {
+          title: 'Step 2 - Case 1: w 黑, p 红, 对 p 左旋',
+          desc: '将红兄弟转换成黑兄弟场景：w 先染黑，p 染红，再 left_rotate(p)。',
+          code: 'w.color = Black; p.color = Red; self.left_rotate(p)',
+          nodes: {
+            n15: N(0.52, 0.20, 'B', '15'),
+            n10: N(0.38, 0.44, 'R', '10'),
+            n18: N(0.68, 0.44, 'B', '18'),
+            n12: N(0.46, 0.68, 'B', '12'),
+            nx: N(0.24, 0.68, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n15','n10','new'), E('n15','n18','new'), E('n10','n12','new')],
+          hiNodes: ['n15','n10']
+        },
+        {
+          title: 'Step 3 - Case 2: w 两个孩子都黑',
+          desc: 'w=12 染红，x 上移到 p。对应代码中 x = Some(p)。',
+          code: 'wn.color = Red; x = Some(p); x_parent = p.parent',
+          nodes: {
+            n15: N(0.52, 0.20, 'B', '15'),
+            n10: N(0.38, 0.44, 'R', '10'),
+            n18: N(0.68, 0.44, 'B', '18'),
+            n12: N(0.46, 0.68, 'R', '12'),
+            nx: N(0.38, 0.44, 'R', 'x=10', 1)
+          },
+          edges: [E('n15','n10'), E('n15','n18'), E('n10','n12')],
+          hiNodes: ['n12','nx']
+        },
+        {
+          title: 'Step 4 - 循环结束并把 x 置黑',
+          desc: '退出 while 后执行 xn.color = Black，删除修复完成。',
+          code: 'if x is Some(xn) { xn.color = Black }',
+          nodes: {
+            n15: N(0.52, 0.20, 'B', '15'),
+            n10: N(0.38, 0.44, 'B', '10'),
+            n18: N(0.68, 0.44, 'B', '18'),
+            n12: N(0.46, 0.68, 'R', '12')
+          },
+          edges: [E('n15','n10'), E('n15','n18'), E('n10','n12')],
+          hiNodes: ['n10']
+        }
+      ]
+    },
+    {
+      id: 'del_case34',
+      name: 'Delete Case 3+4: 近侄红远侄黑 -> 远侄红',
+      steps: [
+        {
+          title: 'Step 0 - 进入 Case 3 形态',
+          desc: 'x 在左侧，兄弟 w=15 为黑，近侄 wl=12 红，远侄 wr=18 黑。',
+          code: 'if color(wn.right) is Black { ... }',
+          nodes: {
+            n10: N(0.42, 0.20, 'B', '10'),
+            n15: N(0.60, 0.44, 'B', '15'),
+            n12: N(0.52, 0.68, 'R', '12'),
+            n18: N(0.70, 0.68, 'B', '18'),
+            nx: N(0.26, 0.44, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n10','n15'), E('n15','n12'), E('n15','n18')],
+          hiNodes: ['n12','n18','n15']
+        },
+        {
+          title: 'Step 1 - Case 3: 先对 w 右旋',
+          desc: '把近侄转成远侄：wl 置黑，w 置红，right_rotate(w)。',
+          code: 'wl.color = Black; wn.color = Red; self.right_rotate(wn)',
+          nodes: {
+            n10: N(0.42, 0.20, 'B', '10'),
+            n12: N(0.58, 0.44, 'B', '12'),
+            n15: N(0.66, 0.68, 'R', '15'),
+            n18: N(0.78, 0.86, 'B', '18'),
+            nx: N(0.26, 0.44, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n10','n12','new'), E('n12','n15','new'), E('n15','n18')],
+          hiNodes: ['n12','n15']
+        },
+        {
+          title: 'Step 2 - Case 4: 对 p 左旋并重着色',
+          desc: 'wn 继承 p 的颜色，p 染黑，远侄染黑，left_rotate(p)。',
+          code: 'wn.color = p.color; p.color = Black; wr.color = Black; self.left_rotate(p)',
+          nodes: {
+            n12: N(0.50, 0.20, 'B', '12'),
+            n10: N(0.34, 0.44, 'B', '10'),
+            n15: N(0.66, 0.44, 'B', '15'),
+            n18: N(0.78, 0.68, 'B', '18')
+          },
+          edges: [E('n12','n10','new'), E('n12','n15','new'), E('n15','n18')],
+          hiNodes: ['n12','n10','n15']
+        },
+        {
+          title: 'Step 3 - 结束：x = root',
+          desc: '源码中设置 x = self.root, x_parent = None，循环终止。',
+          code: 'x = self.root; x_parent = None',
+          nodes: {
+            n12: N(0.50, 0.20, 'B', '12'),
+            n10: N(0.34, 0.44, 'B', '10'),
+            n15: N(0.66, 0.44, 'B', '15'),
+            n18: N(0.78, 0.68, 'B', '18')
+          },
+          edges: [E('n12','n10'), E('n12','n15'), E('n15','n18')],
+          hiNodes: ['n12']
+        }
+      ]
+    },
+    {
+      id: 'del_bst_paths',
+      name: 'Delete 结构分支: 0/1/2 子节点（两子=直接右孩子）',
+      steps: [
+        {
+          title: 'Step 0 - 目标 z=20（有两个孩子）',
+          desc: 'delete 先按 BST 定位 z，然后进入三分支 match(z.left, z.right)。',
+          code: 'match (z.left, z.right) { (None,_), (_,None), (Some(_),Some(right)) }',
+          nodes: {
+            n20: N(0.50, 0.17, 'B', '20'),
+            n10: N(0.34, 0.40, 'B', '10'),
+            n30: N(0.68, 0.40, 'B', '30'),
+            n35: N(0.76, 0.66, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n35')],
+          hiNodes: ['n20']
+        },
+        {
+          title: 'Step 1 - 两子分支: 找后继 y=find_min(z.right)',
+          desc: '本例中 z.right 本身就是最小点，所以 y = z.right（直接右孩子分支）。',
+          code: 'let y = find_min(right); y_original_color = y.color',
+          nodes: {
+            n20: N(0.50, 0.17, 'B', '20'),
+            n10: N(0.34, 0.40, 'B', '10'),
+            n30: N(0.68, 0.40, 'B', '30'),
+            n35: N(0.76, 0.66, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n35')],
+          hiNodes: ['n30']
+        },
+        {
+          title: 'Step 2 - 直接右孩子分支: 不需要 y.right = z.right',
+          desc: 'y 已经是 z.right，直接 transplant(z, y) 后接上 y.left 并继承颜色；右子树关系天然保留。',
+          code: 'if y.is_right_child_of(z) { x_parent=Some(y) }; self.transplant(z, Some(y)); y.left=z.left; y.color=z.color',
+          nodes: {
+            n30: N(0.50, 0.17, 'B', '30'),
+            n10: N(0.34, 0.40, 'B', '10'),
+            n35: N(0.76, 0.66, 'B', '35')
+          },
+          edges: [E('n30','n10','new'), E('n30','n35')],
+          hiNodes: ['n30']
+        },
+        {
+          title: 'Step 3 - 另外两个分支（示意）',
+          desc: '若 z.left=None 或 z.right=None，直接 transplant(z, 单侧子树)；仅当删除黑节点才继续 fix_delete。',
+          code: '(None, _) => transplant(z, z.right); (_, None) => transplant(z, z.left)',
+          nodes: {
+            n30: N(0.50, 0.17, 'B', '30'),
+            n10: N(0.34, 0.40, 'B', '10'),
+            n35: N(0.76, 0.66, 'B', '35')
+          },
+          edges: [E('n30','n10'), E('n30','n35')],
+          hiNodes: ['n30']
+        }
+      ]
+    },
+    {
+      id: 'del_two_children_deep_successor',
+      name: 'Delete 两子复杂分支: y 不是直接右孩子',
+      steps: [
+        {
+          title: 'Step 0 - 初始形态：z 有两子，后继在更深层',
+          desc: 'z=20，右子树最小值 y=22 位于更深层（不是 z 的直接右孩子）。',
+          code: 'let y = find_min(z.right)',
+          nodes: {
+            n20: N(0.50, 0.14, 'B', '20'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n22: N(0.58, 0.58, 'R', '22'),
+            n24: N(0.64, 0.80, 'B', '24'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n22'), E('n30','n35'), E('n22','n24')],
+          hiNodes: ['n20','n22']
+        },
+        {
+          title: 'Step 1 - 取出 y / x / y_original_color',
+          desc: '按照源码：y=find_min(right), x=y.right, y_original_color=y.color。',
+          code: 'let y=find_min(right); let x=y.right; let y_original_color=y.color',
+          nodes: {
+            n20: N(0.50, 0.14, 'B', '20'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n22: N(0.58, 0.58, 'R', '22'),
+            n24: N(0.64, 0.80, 'B', '24'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n22'), E('n30','n35'), E('n22','n24')],
+          hiNodes: ['n22','n24']
+        },
+        {
+          title: 'Step 2 - 分支判断：y 不是 z 的直接右孩子',
+          desc: '条件 if y.is_right_child_of(z) 为假，进入 else 分支。',
+          code: 'if y.is_right_child_of(z) { ... } else { ... }',
+          nodes: {
+            n20: N(0.50, 0.14, 'B', '20'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n22: N(0.58, 0.58, 'R', '22'),
+            n24: N(0.64, 0.80, 'B', '24'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n22'), E('n30','n35'), E('n22','n24')],
+          hiNodes: ['n20','n22','n30']
+        },
+        {
+          title: 'Step 3 - transplant(y, y.right)',
+          desc: '先把 y 从原位置摘掉，让 x=24 顶上去（x_parent 记录为原来的 30）。',
+          code: 'let parent = y.parent; self.transplant(y, y.right)',
+          nodes: {
+            n20: N(0.50, 0.14, 'B', '20'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n24: N(0.58, 0.58, 'B', '24'),
+            n22: N(0.66, 0.74, 'R', '22'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n20','n10'), E('n20','n30'), E('n30','n24','new'), E('n30','n35'), E('n22','n24')],
+          hiNodes: ['n30','n24','n22']
+        },
+        {
+          title: 'Step 4 - y.right = z.right，再 transplant(z, y)',
+          desc: '把原来的 z.right 整棵挂到 y 右边，然后让 y 去接管 z 的位置。',
+          code: 'y.right = z.right; self.transplant(z, Some(y))',
+          nodes: {
+            n22: N(0.50, 0.14, 'R', '22'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n24: N(0.58, 0.58, 'B', '24'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n22','n30','new'), E('n22','n10'), E('n30','n24'), E('n30','n35')],
+          hiNodes: ['n22','n30']
+        },
+        {
+          title: 'Step 5 - y.left = z.left，y.color = z.color',
+          desc: '收尾：接上左子树并继承 z 的颜色，结构删除结束，后续按 y_original_color 决定是否 fix_delete。',
+          code: 'y.left = z.left; y.color = z.color',
+          nodes: {
+            n22: N(0.50, 0.14, 'B', '22'),
+            n10: N(0.30, 0.35, 'B', '10'),
+            n30: N(0.70, 0.35, 'B', '30'),
+            n24: N(0.58, 0.58, 'B', '24'),
+            n35: N(0.82, 0.58, 'B', '35')
+          },
+          edges: [E('n22','n10','new'), E('n22','n30'), E('n30','n24'), E('n30','n35')],
+          hiNodes: ['n22','n10']
+        }
+      ]
+    },
+    {
+      id: 'del_mirror_case34',
+      name: 'Delete 镜像 Case 3+4: x 在右侧',
+      steps: [
+        {
+          title: 'Step 0 - 镜像分支入口',
+          desc: 'x 在右侧，兄弟 w=p.left；对应 fix_delete 的 else 镜像分支。',
+          code: 'else { let mut w = p.left ... }',
+          nodes: {
+            n10: N(0.58, 0.20, 'B', '10'),
+            n5: N(0.40, 0.44, 'B', '5'),
+            n2: N(0.30, 0.68, 'B', '2'),
+            n7: N(0.50, 0.68, 'R', '7'),
+            nx: N(0.74, 0.44, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n10','n5'), E('n5','n2'), E('n5','n7')],
+          hiNodes: ['n5','n2','n7']
+        },
+        {
+          title: 'Step 1 - 镜像 Case 3: left_rotate(w)',
+          desc: '当远侄(左)黑时，先把近侄(右)转成远侄。',
+          code: 'if color(wn.left) is Black { ... self.left_rotate(wn) }',
+          nodes: {
+            n10: N(0.58, 0.20, 'B', '10'),
+            n7: N(0.40, 0.44, 'B', '7'),
+            n5: N(0.30, 0.68, 'R', '5'),
+            n2: N(0.22, 0.86, 'B', '2'),
+            nx: N(0.74, 0.44, 'B', 'x=NIL', 1)
+          },
+          edges: [E('n10','n7','new'), E('n7','n5','new'), E('n5','n2')],
+          hiNodes: ['n7','n5']
+        },
+        {
+          title: 'Step 2 - 镜像 Case 4: right_rotate(p)',
+          desc: 'wn 继承 p 颜色，p 置黑，远侄置黑，再右旋父节点。',
+          code: 'wn.color=p.color; p.color=Black; wl.color=Black; self.right_rotate(p)',
+          nodes: {
+            n7: N(0.50, 0.20, 'B', '7'),
+            n5: N(0.34, 0.44, 'B', '5'),
+            n10: N(0.66, 0.44, 'B', '10'),
+            n2: N(0.24, 0.68, 'B', '2')
+          },
+          edges: [E('n7','n5','new'), E('n7','n10','new'), E('n5','n2')],
+          hiNodes: ['n7','n10']
+        },
+        {
+          title: 'Step 3 - 结束',
+          desc: '与左侧分支一样，x 被置为 root，循环停止。',
+          code: 'x = self.root; x_parent = None',
+          nodes: {
+            n7: N(0.50, 0.20, 'B', '7'),
+            n5: N(0.34, 0.44, 'B', '5'),
+            n10: N(0.66, 0.44, 'B', '10'),
+            n2: N(0.24, 0.68, 'B', '2')
+          },
+          edges: [E('n7','n5'), E('n7','n10'), E('n5','n2')],
+          hiNodes: ['n7']
+        }
+      ]
+    }
+  ]
+};
+
+const STEP_VARS = {
+  ins_case1: [
+    { g: 'n10', p: 'n5', u: 'n15', z: 'n1' },
+    { g: 'n10', p: 'n5', u: 'n15', z: 'n1' },
+    { g: 'n10', p: 'n5', u: 'n15', z: 'n10' },
+    { g: 'n10', p: 'n5', u: 'n15', z: 'n10' }
+  ],
+  ins_case23: [
+    { g: 'n10', p: 'n5', u: 'n15', z: 'n8' },
+    { g: 'n10', p: 'n8', u: 'n15', z: 'n5' },
+    { g: 'n10', p: 'n8', u: 'n15', z: 'n5' },
+    { g: 'n10', p: 'n8', u: 'n15', z: 'n5' },
+    { g: 'n10', p: 'n8', u: 'n15', z: 'n5' }
+  ],
+  ins_mirror_case23: [
+    { g: 'n10', p: 'n15', u: 'n5', z: 'n12' },
+    { g: 'n10', p: 'n12', u: 'n5', z: 'n15' },
+    { g: 'n10', p: 'n12', u: 'n5', z: 'n15' },
+    { g: 'n10', p: 'n12', u: 'n5', z: 'n15' },
+    { g: 'n10', p: 'n12', u: 'n5', z: 'n15' }
+  ],
+  ins_no_fix: [
+    { p: 'n5', z: 'n7' },
+    { p: 'n5', z: 'n7' },
+    { p: 'n5', z: 'n7' }
+  ],
+  del_case12: [
+    { z: 'n5', p: 'n10', w: 'n15', x: 'nx' },
+    { p: 'n10', w: 'n15', x: 'nx', wl: 'n12', wr: 'n18' },
+    { p: 'n10', w: 'n15', x: 'nx', wl: 'n12', wr: 'n18' },
+    { p: 'n10', w: 'n12', x: 'n10' },
+    { x: 'n10' }
+  ],
+  del_case34: [
+    { p: 'n10', w: 'n15', x: 'nx', wl: 'n12', wr: 'n18' },
+    { p: 'n10', w: 'n12', x: 'nx', wl: 'n15', wr: 'n18' },
+    { p: 'n10', w: 'n12', x: 'nx', wr: 'n15' },
+    { x: 'n12' }
+  ],
+  del_bst_paths: [
+    { z: 'n20', y: 'n30' },
+    { z: 'n20', y: 'n30' },
+    { z: 'n20', y: 'n30', x: 'n35' },
+    { z: 'n20', y: 'n30' }
+  ],
+  del_two_children_deep_successor: [
+    { z: 'n20', y: 'n22' },
+    { z: 'n20', y: 'n22', x: 'n24' },
+    { z: 'n20', y: 'n22', xp: 'n30' },
+    { y: 'n22', x: 'n24', xp: 'n30' },
+    { z: 'n20', y: 'n22', x: 'n24', xp: 'n30' },
+    { y: 'n22', x: 'n24', xp: 'n30' }
+  ],
+  del_mirror_case34: [
+    { p: 'n10', w: 'n5', x: 'nx', wl: 'n2', wr: 'n7' },
+    { p: 'n10', w: 'n7', x: 'nx', wl: 'n5', wr: 'n2' },
+    { p: 'n10', w: 'n7', x: 'nx', wl: 'n5' },
+    { x: 'n7' }
+  ]
+};
+
+const STEP_WHY_DETAIL = {
+  ins_case1: [
+    '先构造“父红 + 叔红”的冲突前状态。这里还没动结构，只是定位即将插入的 z，方便理解后续冲突来源。',
+    '插入阶段严格按 BST 规则落位，保证中序序列仍然有序；新节点默认红色，这一步可能引入红红冲突。',
+    '叔叔也是红色时，旋转不能直接解决冲突。正确做法是 p/u 变黑、g 变红，把冲突抬高一层继续处理。',
+    '循环结束后必须把根设为黑色。这是红黑树硬性性质，能兜底前面向上传播导致的根变红。'
+  ],
+  ins_case23: [
+    '这是左侧内拐（z 在 p 的右）。直接旋祖父会破坏修复节奏，所以先把形态变成外拐。',
+    'Case 2 的小旋转本质是“折线拉直”，把 z/p/g 调整为可一次收敛的外拐关系。',
+    '先重着色再做大旋转，目标是让新局部根黑、下沉节点红，从而消除连续红节点。',
+    '外拐旋转完成后，局部红黑性质恢复，同时 BST 的键序不变。',
+    '最终再次确认根为黑，插入修复完整闭环。'
+  ],
+  ins_mirror_case23: [
+    '这是右侧内拐，和前一组是完全镜像，目的是验证源码 else 分支。',
+    '镜像 Case 2 先 right_rotate(p)，把内拐变外拐。',
+    '镜像 Case 3 同样先重着色，准备对祖父左旋收敛。',
+    'left_rotate(g) 后局部结构恢复平衡，红红冲突被消除。',
+    '收尾保持根黑，保证全树性质成立。'
+  ],
+  ins_no_fix: [
+    '先展示父节点为黑的安全前提：这种情况下插入红节点通常不会破坏红黑性质。',
+    '按 BST 挂接新节点后，树的有序性已经满足。',
+    '命中快速返回分支，不进入 fix_insert，说明并非每次插入都要旋转或重着色。'
+  ],
+  del_case12: [
+    '删除黑节点会引入“额外黑色”问题，所以必须进入 fix_delete。',
+    'x 在左侧且兄弟 w 为红，先进入 Case 1 做形态转换。',
+    'Case 1 的目标是把“红兄弟”变成“黑兄弟”场景，后续才能统一处理。',
+    'Case 2 表示兄弟及其孩子都黑，只能把问题继续上推到父节点。',
+    '循环退出后把 x 染黑，彻底消掉额外黑色。'
+  ],
+  del_case34: [
+    'Case 3 前提：兄弟黑、近侄红、远侄黑。直接收敛还不行，需要先变形。',
+    '先旋兄弟把近侄转成远侄，这是从 Case 3 过渡到 Case 4 的关键步骤。',
+    'Case 4 才是最终收敛步骤：通过重着色 + 旋转恢复两侧黑高一致。',
+    '把 x 设为 root 后循环自然终止，修复完成。'
+  ],
+  del_bst_paths: [
+    '先明确 delete 的第一层是 BST 结构处理，不是直接进 fix_delete。',
+    '两子节点分支会选择后继 y（右子树最小）作为替身；本例特意选 y=z.right。',
+    '直接右孩子分支不需要执行 y.right = z.right，否则会形成 y.right = Some(y) 的自环风险。',
+    '如果是 0/1 子节点分支，逻辑更短：直接 transplant，必要时才 fix_delete。'
+  ],
+  del_two_children_deep_successor: [
+    '先构造你提到的“复杂情况”：后继 y 不在 z 的右孩子位置，而在更深层。',
+    '这一步拿齐关键变量 y/x/y_original_color，后面所有修复都依赖它们。',
+    '条件判断失败后进入 else 分支，这正是复杂情况与简单情况的分叉点。',
+    '必须先 transplant(y, y.right)，否则 y 直接上移会导致原位置断链或重复引用。',
+    '再让 y 接管 z 的位置与右子树，确保 BST 结构仍然正确。',
+    '最后补齐左子树与颜色继承，结构删除完成；是否进入 fix_delete 由 y_original_color 决定。'
+  ],
+  del_mirror_case34: [
+    '这是 fix_delete 的右侧镜像分支，和左侧 case34 对称。',
+    '镜像 Case 3 先 left_rotate(w) 进行形态转换。',
+    '镜像 Case 4 再 right_rotate(p) 收敛并恢复黑高。',
+    '最后令 x 到 root，循环停止。'
+  ]
+};
+
+function N(x, y, rb, label, visible = 1) {
+  return { x, y, rb, label, visible };
+}
+
+function E(from, to, kind = 'normal') {
+  return { from, to, kind };
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * DPR;
+  canvas.height = rect.height * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  draw();
+});
+
+function activeScenes() {
+  return SCENES[mode];
+}
+
+function activeScene() {
+  return activeScenes().find((s) => s.id === scenarioId) || activeScenes()[0];
+}
+
+function maxStep() {
+  return activeScene().steps.length - 1;
+}
+
+function currentSnapshot() {
+  if (!prevStepSnapshot || !targetStepSnapshot || animProgress >= 1) return targetStepSnapshot;
+  const t = easeInOut(animProgress);
+  const result = {
+    title: targetStepSnapshot.title,
+    desc: targetStepSnapshot.desc,
+    code: targetStepSnapshot.code,
+    edges: targetStepSnapshot.edges,
+    hiNodes: targetStepSnapshot.hiNodes || []
+  };
+
+  const ids = new Set([
+    ...Object.keys(prevStepSnapshot.nodes || {}),
+    ...Object.keys(targetStepSnapshot.nodes || {})
+  ]);
+
+  result.nodes = {};
+  ids.forEach((id) => {
+    const pa = prevStepSnapshot.nodes[id] || fallbackNode(targetStepSnapshot.nodes[id]);
+    const pb = targetStepSnapshot.nodes[id] || fallbackNode(prevStepSnapshot.nodes[id]);
+    result.nodes[id] = {
+      x: lerp(pa.x, pb.x, t),
+      y: lerp(pa.y, pb.y, t),
+      rb: t < 0.5 ? pa.rb : pb.rb,
+      label: pb.label || pa.label || id,
+      visible: lerp(pa.visible ?? 1, pb.visible ?? 1, t)
+    };
+  });
+
+  return result;
+}
+
+function fallbackNode(base) {
+  if (!base) return { x: 0.5, y: 0.86, rb: 'B', label: '', visible: 0 };
+  return { x: base.x, y: base.y, rb: base.rb, label: base.label, visible: 0 };
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
+
+function edgeKey(e) {
+  return `${e.from}->${e.to}`;
+}
+
+function draw() {
+  const W = canvas.getBoundingClientRect().width;
+  const H = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0, 0, W, H);
+
+  const shot = currentSnapshot();
+  if (!shot) return;
+
+  const nodes = shot.nodes || {};
+  const hiSet = new Set(shot.hiNodes || []);
+  const step = activeScene().steps[currentStep];
+  const bindings = inferVarBindings(step);
+  const nodeTags = groupVarTagsByNode(bindings);
+
+  // edges
+  (shot.edges || []).forEach((e) => {
+    const a = nodes[e.from];
+    const b = nodes[e.to];
+    if (!a || !b) return;
+    if ((a.visible ?? 1) < 0.05 || (b.visible ?? 1) < 0.05) return;
+
+    const x1 = a.x * W;
+    const y1 = a.y * H;
+    const x2 = b.x * W;
+    const y2 = b.y * H;
+
+    ctx.save();
+    ctx.globalAlpha = Math.min(a.visible, b.visible);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+
+    if (e.kind === 'new') {
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([7, 4]);
+    } else {
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // arrow
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const tipX = x2 - NODE_R * Math.cos(angle);
+    const tipY = y2 - NODE_R * Math.sin(angle);
+    const size = 9;
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - size * Math.cos(angle - 0.4), tipY - size * Math.sin(angle - 0.4));
+    ctx.lineTo(tipX - size * Math.cos(angle + 0.4), tipY - size * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = e.kind === 'new' ? '#22c55e' : '#64748b';
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // nodes
+  Object.keys(nodes).forEach((id) => {
+    const n = nodes[id];
+    const alpha = n.visible ?? 1;
+    if (alpha < 0.04) return;
+
+    const cx = n.x * W;
+    const cy = n.y * H;
+    const isHi = hiSet.has(id);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    if (isHi) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, NODE_R + 9, 0, Math.PI * 2);
+      const glow = ctx.createRadialGradient(cx, cy, NODE_R, cx, cy, NODE_R + 14);
+      glow.addColorStop(0, 'rgba(250,204,21,0.35)');
+      glow.addColorStop(1, 'rgba(250,204,21,0)');
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
+    const isRed = n.rb === 'R';
+    const nodeFill = isRed ? '#ef4444' : '#0b1220';
+    const nodeStroke = isHi ? '#facc15' : (isRed ? '#fecaca' : '#cbd5e1');
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, NODE_R, 0, Math.PI * 2);
+    ctx.fillStyle = nodeFill;
+    ctx.fill();
+    ctx.lineWidth = isHi ? 3 : 2;
+    ctx.strokeStyle = nodeStroke;
+    ctx.stroke();
+
+    // Main value label
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 13px "SF Mono", "Fira Code", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n.label, cx, cy + 3);
+
+    // Explicit color marker so red/black status is obvious at a glance.
+    ctx.font = 'bold 10px "SF Mono", "Fira Code", monospace';
+    ctx.fillStyle = isRed ? '#7f1d1d' : '#93c5fd';
+    ctx.fillText(isRed ? 'R' : 'B', cx, cy - 10);
+
+    ctx.restore();
+
+    const tags = nodeTags[id] || [id];
+    if (tags.length > 0) {
+      const tagText = tags.join(',');
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = 'bold 10px "SF Mono", "Fira Code", monospace';
+      const tw = ctx.measureText(tagText).width + 10;
+      const tx = cx - tw / 2;
+      const ty = cy - NODE_R - 18;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      roundRect(ctx, tx, ty, tw, 14, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#7dd3fc';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tagText, cx, ty + 7);
+      ctx.restore();
+    }
+  });
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function inferVarBindings(step) {
+  const scene = activeScene();
+  const sceneVars = STEP_VARS[scene.id] || [];
+  const explicit = sceneVars[currentStep] || {};
+  const nodes = step.nodes || {};
+  const resolved = {};
+  const coreOrder = ['z', 'p', 'u', 'b', 'g', 'x', 'xp', 'w', 'wl', 'wr', 'y'];
+
+  coreOrder.forEach((v) => {
+    const nodeId = explicit[v] || null;
+    if (!nodeId || !nodes[nodeId]) {
+      resolved[v] = { value: null, nodeId: null };
+      return;
+    }
+    const label = String(nodes[nodeId].label || '').trim();
+    resolved[v] = { value: label, nodeId };
+  });
+  return resolved;
+}
+
+function groupVarTagsByNode(bindings) {
+  const map = {};
+  Object.entries(bindings).forEach(([v, info]) => {
+    if (!info || !info.nodeId) return;
+    if (!map[info.nodeId]) map[info.nodeId] = [];
+    map[info.nodeId].push(v);
+  });
+  return map;
+}
+
+function whyForStep(step) {
+  if (step.why) return step.why;
+  const scene = activeScene();
+  const list = STEP_WHY_DETAIL[scene.id] || [];
+  return list[currentStep] || '这一步是在为下一步的旋转或重着色创造可处理形态，目标是保持 BST 有序并修复红黑性质。';
+}
+
+function renderVars(step) {
+  const el = document.getElementById('varsMap');
+  const bindings = inferVarBindings(step);
+  const order = ['z', 'p', 'u', 'b', 'g', 'x', 'xp', 'w', 'wl', 'wr', 'y'];
+  el.innerHTML = '';
+  order.forEach((v) => {
+    const info = bindings[v];
+    const chip = document.createElement('span');
+    chip.className = 'var-chip';
+    chip.textContent = `${v} = ${info && info.value ? info.value : '本步未使用'}`;
+    el.appendChild(chip);
+  });
+}
+
+function renderCaseOverview() {
+  const ins = document.getElementById('insertCaseList');
+  const del = document.getElementById('deleteCaseList');
+  ins.innerHTML = '';
+  del.innerHTML = '';
+
+  SCENES.insert.forEach((s) => {
+    const li = document.createElement('li');
+    li.textContent = s.name;
+    ins.appendChild(li);
+  });
+
+  SCENES.delete.forEach((s) => {
+    const li = document.createElement('li');
+    li.textContent = s.name;
+    del.appendChild(li);
+  });
+}
+
+function animate() {
+  if (animProgress >= 1) {
+    animating = false;
+    updateUI();
+    draw();
+    return;
+  }
+  animProgress = Math.min(1, animProgress + 0.035);
+  draw();
+  rafId = requestAnimationFrame(animate);
+}
+
+function goToStep(stepIdx) {
+  const steps = activeScene().steps;
+  const next = Math.max(0, Math.min(stepIdx, steps.length - 1));
+  prevStepSnapshot = targetStepSnapshot || steps[currentStep];
+  currentStep = next;
+  targetStepSnapshot = steps[currentStep];
+  animProgress = 0;
+  animating = true;
+  updateUI();
+  if (rafId) cancelAnimationFrame(rafId);
+  animate();
+}
+
+function buildScenarioOptions() {
+  const sel = document.getElementById('scenarioSelect');
+  const scenes = activeScenes();
+  sel.innerHTML = '';
+  scenes.forEach((s) => {
+    const op = document.createElement('option');
+    op.value = s.id;
+    op.textContent = s.name;
+    sel.appendChild(op);
+  });
+
+  if (!scenes.some((s) => s.id === scenarioId)) {
+    scenarioId = scenes[0].id;
+  }
+  sel.value = scenarioId;
+}
+
+function buildDots() {
+  const dotWrap = document.getElementById('dots');
+  dotWrap.innerHTML = '';
+  for (let i = 0; i <= maxStep(); i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    dotWrap.appendChild(d);
+  }
+}
+
+function updateUI() {
+  const step = activeScene().steps[currentStep];
+  document.getElementById('stepTitle').textContent = `${step.title} (${currentStep}/${maxStep()})`;
+  document.getElementById('stepDesc').textContent = step.desc;
+  document.getElementById('codeLine').textContent = step.code;
+  document.getElementById('stepWhy').textContent = whyForStep(step);
+  renderVars(step);
+
+  document.getElementById('btnPrev').disabled = currentStep === 0 || animating;
+  document.getElementById('btnNext').disabled = currentStep >= maxStep() || animating;
+
+  const dots = document.getElementById('dots').children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].className = 'dot' + (i < currentStep ? ' done' : '') + (i === currentStep ? ' active' : '');
+  }
+}
+
+function resetAnim() {
+  stopAuto();
+  currentStep = 0;
+  const first = activeScene().steps[0];
+  prevStepSnapshot = first;
+  targetStepSnapshot = first;
+  animProgress = 1;
+  animating = false;
+  buildDots();
+  updateUI();
+  draw();
+}
+
+function nextStep() {
+  if (animating || currentStep >= maxStep()) return;
+  goToStep(currentStep + 1);
+}
+
+function prevStep() {
+  if (animating || currentStep <= 0) return;
+  goToStep(currentStep - 1);
+}
+
+function stopAuto() {
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+}
+
+function autoPlay() {
+  if (autoTimer) {
+    stopAuto();
+    return;
+  }
+
+  if (currentStep >= maxStep()) {
+    resetAnim();
+  }
+
+  autoTimer = setInterval(() => {
+    if (animating) return;
+    if (currentStep >= maxStep()) {
+      stopAuto();
+      return;
+    }
+    nextStep();
+  }, 1200);
+}
+
+function switchMode(m) {
+  mode = m;
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  stopAuto();
+  buildScenarioOptions();
+  resetAnim();
+}
+
+function switchScenario(id) {
+  scenarioId = id;
+  stopAuto();
+  resetAnim();
+}
+
+// keyboard
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    nextStep();
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevStep();
+  }
+  if (e.key === 'r' || e.key === 'R') {
+    resetAnim();
+  }
+});
+
+// init
+resizeCanvas();
+scenarioId = SCENES.insert[0].id;
+renderCaseOverview();
+buildScenarioOptions();
+resetAnim();
+</script>
+
+</body>
+</html>

@@ -73,6 +73,8 @@ fn AVLTree::insert(self : Self, val : Int) -> Unit {
       node.left = Some(insert_node(node.left, val))
     } else if val > node.val {
       node.right = Some(insert_node(node.right, val))
+    } else {
+      return node // 特殊情况，直接返回
     }
     node.update_height()
     node.rotate()
