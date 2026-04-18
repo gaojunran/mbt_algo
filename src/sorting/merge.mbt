@@ -77,7 +77,7 @@ fn merge_sort2(arr: ArrayView[Int]) -> ArrayView[Int] {
 test "benchmark" {
   // Generate a large random array for benchmarking
   let rand = @random.Rand::new()
-  let size = 10000
+  let size = 1000
   let bench = @bench.Bench::new()
   bench.bench(
     name="merge_sort (imperative)",

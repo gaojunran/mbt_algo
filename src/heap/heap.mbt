@@ -91,12 +91,14 @@ fn ArrayHeap::sift_down(self : ArrayHeap, i : Int) -> Unit {
       break
     }
     self.arr.swap(i, largest_idx)
+    // 是上次最大的，现在已经不是最大的了，继续往下 sift
     continue largest_idx
   }
 }
 
 fn ArrayHeap::heapify(arr : Array[Int]) -> Self {
   let heap = ArrayHeap::new(arr)
+  // 数组长度为 n，叶子节点的索引范围是 [n/2, n)，所以非叶子节点的索引范围是 [0, n/2)
   for i in (arr.length() / 2 - 1) >=.. 0 {
     heap.sift_down(i)
   }
@@ -105,12 +107,10 @@ fn ArrayHeap::heapify(arr : Array[Int]) -> Self {
 
 fn heap_sort(arr : Array[Int]) -> Array[Int] {
   let heap = ArrayHeap::heapify(arr)
-  let res = []
   // 可以不用 peek，在没有的时候 peek 和 pop 等价
-  while heap.pop() is Some(val) {
-    res.push(val)
-  }
-  res
+  for res = []; heap.pop() is Some(val) {
+    continue res..push(val)
+  } nobreak { res }
 }
 
 ///|

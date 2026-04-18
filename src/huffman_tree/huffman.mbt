@@ -1,5 +1,6 @@
 struct Node {
   ch: Char?
+  // 建树的依据，后面就没用了
   freq: Int
   left: Node?
   right: Node?
@@ -75,7 +76,7 @@ fn HuffmanTree::decode(self: Self, encoded: String) -> String {
     let next = match (curr, bit) {
       (Some({ left: Some(left), .. }), '0') => left
       (Some({ right: Some(right), .. }), '1') => right
-      _ => break result  // 异常分支
+      _ => break result // 异常分支：空树、只有一个字符的树、非法编码等
     }
 
     match next.ch {

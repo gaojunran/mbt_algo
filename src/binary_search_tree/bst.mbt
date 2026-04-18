@@ -32,6 +32,36 @@ fn BST::insert(self : Self, val : Int) -> Unit {
 }
 
 ///|
+fn BST::insert2(self : Self, val : Int) -> Unit {
+  let new_node = Node::{ val, left: None, right: None }
+  for current = self.root, parent = None {
+    match current {
+      Some(node) =>
+        if val < node.val {
+          continue node.left, current
+        } else if val > node.val {
+          continue node.right, current
+        } else {
+          // duplicate key, do nothing
+          break
+        }
+      None => {
+        match parent {
+          None => self.root = Some(new_node) // tree was empty
+          Some(p) =>
+            if val < p.val {
+              p.left = Some(new_node)
+            } else {
+              p.right = Some(new_node)
+            }
+        }
+        break
+      }
+    }
+  }
+}
+
+///|
 fn BST::search(self : Self, val : Int) -> Bool {
   fn search_node(root : Node?, val : Int) -> Bool {
     match root {
@@ -100,6 +130,13 @@ fn find_min(node : Node) -> Node {
   }
 }
 
+fn find_max(node : Node) -> Node {
+  match node.right {
+    None => node
+    Some(right) => find_max(right)
+  }
+}
+
 ///|
 fn BST::delete(self : Self, val : Int) -> Unit {
   fn delete_node(root : Node?, val : Int) -> Node? {
@@ -118,6 +155,7 @@ fn BST::delete(self : Self, val : Int) -> Unit {
             (Some(left), None) => Some(left)
             (None, Some(right)) => Some(right)
             (Some(_), Some(right)) => {
+              // 有右子树时，后继一定在右子树里，具体来说是右子树里最小的节点
               let min = find_min(right)
               // 用中序后继替换当前节点
               node.val = min.val
@@ -136,10 +174,10 @@ fn BST::delete(self : Self, val : Int) -> Unit {
 ///|
 test "insert" {
   let bst = BST::new()
-  bst.insert(3)
-  bst.insert(1)
-  bst.insert(4)
-  bst.insert(2)
+  bst.insert2(3)
+  bst.insert2(1)
+  bst.insert2(4)
+  bst.insert2(2)
   json_inspect(bst, content={
     "root": {
       "val": 3,
