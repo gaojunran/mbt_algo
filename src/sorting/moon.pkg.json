@@ -1,0 +1,7 @@
+{
+  "name": "sorting",
+  "import": [
+    "moonbitlang/core/bench",
+    "moonbitlang/core/random"
+  ]
+}
